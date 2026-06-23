@@ -2,8 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
+const { profile, signOut } = useAuth()
 const products = ref<any[]>([])
 const loading = ref(true)
 
@@ -24,29 +26,36 @@ async function fetchProducts() {
   loading.value = false
 }
 
+async function handleSignOut() {
+  await signOut()
+  router.push('/signin')
+}
+
 onMounted(fetchProducts)
 </script>
 
 <template>
   <div class="screen">
     <div class="header">
-      <h1>Welcome, Eva 👋</h1>
-      <p>Your inventory</p>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h1>Welcome, {{ profile?.full_name ?? '...' }} 👋</h1>
+          <p>Your inventory</p>
+        </div>
+        <button class="btn-signout" @click="handleSignOut">Sign out</button>
+      </div>
     </div>
 
     <div class="content">
-      <!-- Loading -->
       <div v-if="loading" class="empty-state">
         <p>Loading...</p>
       </div>
 
-      <!-- Empty state -->
       <div v-else-if="products.length === 0" class="empty-state">
         <div class="icon">📦</div>
         <p>You don't have any products yet.</p>
       </div>
 
-      <!-- Product list -->
       <div v-else class="product-list">
         <button
           v-for="product in products"
